@@ -1,0 +1,11 @@
+
+Results:
+Fitting plane:           -0.738020x + -0.068348y + -0.000000
+Standard deviation:      0.081 m
+Filtered plane:          -0.757573x + -0.079431y + 0.014230
+STD from filtered plane: 0.029 m
+No. of original dataset: 159
+No. of removed points:   5
+No. of filtered points:  154
+
+

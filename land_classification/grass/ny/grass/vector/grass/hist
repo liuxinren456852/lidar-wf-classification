@@ -1,0 +1,8 @@
+COMMAND: v.in.ogr -o dsn="C:/Zoli/Incidence/land_classification/grass.shp" output="grass" min_area=0.0001 snap=-1
+GISDBASE: C:\Zoli\Incidence\land_classification\grass
+LOCATION: ny MAPSET: grass USER: koppanyi.1 DATE: Mon Aug 11 18:19:32 2014
+-----------------------------------------------------
+2 input polygons
+Total area: 8596.96 (15 areas)
+Overlapping area: 0 (0 areas)
+Area without category: 1290.92 (13 areas)

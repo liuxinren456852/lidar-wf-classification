@@ -1,0 +1,6 @@
+Dataset #; Mean skewness; Median skewness; Mean kurtosis; Median kurtosis\nDataset 1, 2.324, 2.334, 7.102, 7.146
+Dataset 2, 2.252, 2.252, 6.738, 6.730
+Dataset 3, 2.255, 2.264, 6.750, 6.781
+Dataset 4, 1.847, 1.974, 5.312, 5.666
+Dataset 5, 2.244, 2.303, 6.793, 6.999
+
