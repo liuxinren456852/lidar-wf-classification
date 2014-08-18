@@ -1,0 +1,1 @@
+The SVN version is not contained the fwifc.h and sdfifc.dll files due to copyright issues.

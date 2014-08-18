@@ -1,0 +1,1 @@
+1/grass grass_corr cat $GISDBASE/$LOCATION_NAME/$MAPSET/dbf/ dbf
