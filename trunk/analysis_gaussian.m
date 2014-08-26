@@ -1,14 +1,12 @@
 %%
-% Group analysis of Gaussian parameters
+% Calcualte Gaussian parameters
 %
 % Written by Zoltan Koppanyi
 % Date: 07/24/2014
 % The Ohio State Univeristy
 
 %% Gaussian parameters
-from_id = 10; to_id = 35;
-trans_waveform_fn = @(waveforms) trans_waveform(waveforms(:, from_id:to_id), -1);
-%trans_waveform_fn = @(waveforms) waveforms(:, from_id:to_id);
+from_id = 0;
 
 s = '';
 h0=figure(2); clf; hold on;
@@ -18,16 +16,7 @@ disp('Gathering Gaussian parameters...')
 for i = 1 : length(groups),
     fprintf('Group: %s\n', groups{i}.name);
     
-    % Get Gaussian parameters
-    groups{i}.g_params = [];
-    groups{i}.wfmx = [];
-    for j = 1:length(groups{i}.datasets),
-        fprintf('Group: %s Dataset: %s\n', groups{i}.name, project.datasets{groups{i}.datasets(j)}.name);
-        load( project.datasets{groups{i}.datasets(j)}.waveforms );
-        groups{i}.g_params = [groups{i}.g_params; get_gaussian_param_to_mx(waveforms)];
-        groups{i}.wfmx = [groups{i}.wfmx; trans_waveform_fn(get_sample_to_mx( waveforms, 2 ))];
-    end;
-    g_params = groups{i}.g_params;
+    g_params = groups{i}.g_params{wave_id};
     
     % Calculate mean and std
     groups{i}.m_g_params = mean(g_params);
@@ -41,10 +30,10 @@ for i = 1 : length(groups),
     for j = 1:size(g_params, 2);
         fig_num = fig_num + 1;
         subplot(length(groups),5, fig_num);
-        vals = groups{i}.g_params(:,j);
+        vals = g_params(:,j);
         hist(vals, 50);
            
-        limits = [limits; min(vals)-3*std(vals) mean(vals)+3*std(vals)];
+        limits = [limits; mean(vals)-2*std(vals) mean(vals)+2*std(vals)];
     end;
     
 end;
@@ -57,12 +46,12 @@ fig_num = 0;
 for i = 1 : length(groups),
     for j = 1:size(g_params, 2),
        
-        xmin = limits(j, 1);
-        xmax = limits(j, 2);
+        xmin = min(limits(j:5:end, 1));
+        xmax = max(limits(j:5:end, 2));
         
         fig_num = fig_num + 1;
         h=subplot(length(groups), 5, fig_num); hold off;
-        vals = groups{i}.g_params(:,j);
+        vals = groups{i}.g_params{wave_id}(:,j);
         vals_red = vals(and(vals>xmin, vals<xmax));
         hist(vals_red, 20);
         xlim([xmin, xmax]);
@@ -89,7 +78,11 @@ for gi = 1 : length(groups)
           
     figure(3);
     subplot(length(groups),1,gi); hold on;
-    cw = groups{gi}.wfmx;
+    if is_translating == 1,
+        cw = trans_waveform(groups{gi}.wfmx{wave_id}, -1);
+    else
+        cw = groups{gi}.wfmx{wave_id};
+    end;
     
     %h = plot(1:size(cw, 2), mean(cw), 'r-');
     hp{gi}(1) = plot(1:0.2:size(cw, 2), spline(1:size(cw, 2), mean(cw), 1:0.2:size(cw, 2)), 'r-');
@@ -120,7 +113,7 @@ for gi = 1 : length(groups)
     set(h, 'FontSize', 12);
     grid on;
     
-    ylim([0 250]);
+    ylim([0 300]);
     
     % Median waveforms
     figure(4); hold on;
@@ -135,20 +128,20 @@ for gi = 1 : length(groups)
     %xlim([15 60]);
     grid on;
     
-    % Save median wavform
-    groups{gi}.median_wf = median(cw);
-    groups{gi}.mean_wf = median(cw);
-    groups{gi}.min_wf = min(cw);
-    groups{gi}.median_lower_mad_wf = median(cw)-mad(cw);
-    groups{gi}.median_upper_mad_wf = median(cw)+mad(cw);
-    
-    % Use transform waveforms
-    cw_t = trans_waveform(cw, -1);
-    groups{gi}.median_wf_t = median(cw_t);
-    groups{gi}.mean_wf_t = median(cw_t);
-    groups{gi}.min_wf_t = min(cw_t);
-    groups{gi}.median_lower_mad_wf_t = median(cw_t)-mad(cw_t);
-    groups{gi}.median_upper_mad_wf_t = median(cw_t)+mad(cw_t);
+%     % Save median wavform
+%     groups{gi}.median_wf = median(cw);
+%     groups{gi}.mean_wf = median(cw);
+%     groups{gi}.min_wf = min(cw);
+%     groups{gi}.median_lower_mad_wf = median(cw)-mad(cw);
+%     groups{gi}.median_upper_mad_wf = median(cw)+mad(cw);
+%     
+%     % Use transform waveforms
+%     cw_t = trans_waveform(cw, -1);
+%     groups{gi}.median_wf_t = median(cw_t);
+%     groups{gi}.mean_wf_t = median(cw_t);
+%     groups{gi}.min_wf_t = min(cw_t);
+%     groups{gi}.median_lower_mad_wf_t = median(cw_t)-mad(cw_t);
+%     groups{gi}.median_upper_mad_wf_t = median(cw_t)+mad(cw_t);
 
 end;
 

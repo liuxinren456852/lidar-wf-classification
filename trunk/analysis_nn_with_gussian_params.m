@@ -10,8 +10,8 @@ ub = 1-lb;
 
 sum_samples = [];
 for i = 1 : length(groups),
-   g_params = groups{i}.g_params;
-   skkurt = [groups{i}.sk groups{i}.skkurt];
+   g_params = groups{i}.g_params{wave_id};
+   skkurt = [groups{i}.sk{wave_id} groups{i}.skkurt{wave_id}];
    sum_samples = [sum_samples; repmat(i-1, size(g_params, 1), 1), [g_params skkurt]];
 end;
 

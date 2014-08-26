@@ -7,7 +7,9 @@
 
 
 %% Settings
-dataset = project.datasets{length(project.datasets)};
+%dataset_i = length(project.datasets);
+
+dataset = project.datasets{dataset_i};
 
 
 %% Loading
@@ -22,7 +24,7 @@ for i = 1 : length(waveforms),
 %for i = 50 : 150,
     
     perc = i/length(waveforms);
-    waitbar(perc,h,sprintf('Calculate Gaussian fittings: %.1f%% ',perc*100));
+    waitbar(perc,h,sprintf('Calculate Gaussian fittings: %.1f%% Dataset: %s', perc*100, dataset.name));
     
     if length(waveforms{i}.sbl) < 2,
         continue;
@@ -57,7 +59,52 @@ for i = 1 : length(waveforms),
     waveforms{i}.g_ts = tvals;
     waveforms{i}.g_fn = gaussfn;
     waveforms{i}.g_params = xsol;
+    
+    %% Impulse reponse
+    ref = double(waveforms{i}.sbl{1}.sample);
+    back = double(waveforms{i}.sbl{2}.sample);
+    
+    ref = spline(1:length(ref), ref, 1:0.25:length(ref));
+    back = spline(1:length(back), back, 1:0.25:length(back));
+
+    [mrv, mri] = max(ref);
+    [mbv, mbi] = max(back);
+    ref = [repmat(1, 1, mbi-mri), ref,  repmat(1, 1, length(back)-(mbi-mri)-length(ref))];
+    
+    % Checl that the length are same
+    if length(ref) > length(back),
+        disp('Reference wave is longer than back! Remove last digits!');
+        ref = ref(1:length(back));
+    end;
+
+    if length(back) > length(ref),
+        disp('The back wave is longer than reference! Remove last digits!');
+        back = back(1:length(ref));
+    end;
+
+    ir = ref-back;
+    waveforms{i}.impulse_response = ir(1:4:length(ir));
+    
+    % Gaussian for impulse response
+    [val ind] = max(ir);
+    tvalsir = linspace(min(tvals), max(tvals), length(ir));
+    f = @(x) norm(ir - gaussfn(tvalsir, x));
+    
+    try
+        xsol_ir = fminunc(f, [val, tvalsir(ind), 2, 0, 2]);
+    catch
+        try
+            xsol_ir = fminunc(f, [1, 35, 2, 0, 2]);
+        catch
+            xsol_ir = xsol;
+        end;
+    end;    
+    
+    waveforms{i}.g_ir_samples = ir;
+    waveforms{i}.g_ir_ts = tvalsir;
+    waveforms{i}.g_ir_fn = gaussfn;
+    waveforms{i}.g_ir_params = xsol_ir;
 end;
 close(h);
 
-save([project.result_folder '\' dataset.name '_waveforms'] ,'waveforms');
+save(dataset.waveforms ,'waveforms');

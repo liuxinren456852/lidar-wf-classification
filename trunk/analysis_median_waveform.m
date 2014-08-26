@@ -2,12 +2,13 @@
 from_digits = 10;
 to_digits = 40;
 
+
 %% Gathering waveforms into one matrix
 sum_wfmx = [];
 sum_coors = [];
 classes = [];
 for i = 1 : length(groups),   
-    wfmx = groups{i}.wfmx(:,from_digits:to_digits);
+    wfmx = groups{i}.wfmx{wave_id}(:,from_digits:to_digits);
     sum_wfmx = [sum_wfmx; wfmx];
     classes = [classes; repmat(i, size(wfmx, 1), 1)];   
     
@@ -16,15 +17,17 @@ for i = 1 : length(groups),
 end;
 
 % Checking coors and wfmx matrices size
-if size(sum_coors, 1) ~= size(sum_coors, 1)
+if size(sum_wfmx, 1) ~= size(sum_coors, 1)
     disp('Waveforms and coordinate matrix are not same size!')
+    fprintf('WFM size: %i Coor size: %i', size(sum_wfmx, 1), size(sum_coors, 1));
     input('Press any key...');
-    return;
 end;
 
 % Translating waveforms
-%disp('Translating waveforms...')
-%sum_wfmx = trans_waveform(sum_wfmx, -1);
+if is_translating,
+    disp('Translating waveforms...')
+    sum_wfmx = trans_waveform(sum_wfmx, -1);
+end;
 
 class_vals = zeros(size(sum_wfmx, 1), length(groups));
 for i = 1 : length(groups),
@@ -32,9 +35,14 @@ for i = 1 : length(groups),
     fprintf('Group: %s\n', groups{i}.name);
     
     % Reference waveform
-    %mwf = trans_waveform(groups{i}.median_wf(from_digits:to_digits), -1);
-    %mwf = groups{i}.median_lower_mad_wf(from_digits:to_digits);
-    mwf = groups{i}.median_wf(from_digits:to_digits);
+    %mwf = trans_waveform(groups{i}.median_wf{wave_id}(from_digits:to_digits), -1);
+    %mwf = groups{i}.median_lower_mad_wf{wave_id}(from_digits:to_digits);
+    
+    if is_translating,
+        mwf = groups{i}.median_wf_t{wave_id}(from_digits:to_digits);
+    else
+        mwf = groups{i}.median_wf{wave_id}(from_digits:to_digits);
+    end;
     
     % Calculate waveform distances
     diff_wf = sum_wfmx - repmat(mwf, size(sum_wfmx, 1), 1);
@@ -66,6 +74,11 @@ for j = 1 : length(data_ratio_rate),
 
     % Confusion matrix
     cmat = confusionmat(classes(sel), ind(sel));
+    
+    % Not in all group has match, continue!
+    if size(cmat,1) < length(groups),
+        continue;
+    end;
     
     % Save result
     dlmwrite([project.result_folder '\anal_median_wf_' project.name '_' num2str(data_ratio_rate(j)) '.csv'], cmat);

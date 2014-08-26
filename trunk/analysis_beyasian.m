@@ -24,14 +24,15 @@ for i = 1 : length(groups),
     
     fprintf('Group: %s\n', groups{i}.name);
     
-    wfmx = groups{i}.wfmx;
+    wfmx = groups{i}.wfmx{wave_id};
     load(project.datasets{groups{i}.datasets}.coors);
     
-    if length(groups{i}.sk) == size(groups{i}.g_params,1),
-        gparams = [groups{i}.g_params, groups{i}.sk, groups{i}.skkurt];
+    if length(groups{i}.sk{wave_id}) == size(groups{i}.g_params{wave_id}, 1),
+        gparams = [groups{i}.g_params{wave_id}, groups{i}.sk{wave_id}, groups{i}.skkurt{wave_id}];
     else
         disp(['g_params length does not match: ' groups{i}.name]);
-        gparams = [groups{i}.g_params(1:length(groups{i}.sk), :), groups{i}.sk, groups{i}.skkurt];
+        input('Press any key...');
+        gparams = [groups{i}.g_params{wave_id}(1:length(groups{i}.sk{wave_id}), :), groups{i}.sk{wave_id}, groups{i}.skkurt{wave_id}];
     end;
        
     % Checking coors and wfmx matrices size
@@ -112,11 +113,11 @@ end;
 %% SOM
 csom_grass = train_som(train_classes, train_wfmx, [2 2]);
 res_csom_grass = class_som(csom_grass, train_wfmx);
-chk_csom = confusionmat(train_classes, res_csom_grass.classes);
+chk_csom_grass = confusionmat(train_classes, res_csom_grass.classes);
 csom_grass.pcmat;
 
 csom = train_som(train_classes, train_wfmx, [3 3]);
-res_csom = class_som(csom_grass, train_wfmx);
+res_csom = class_som(csom, train_wfmx);
 chk_csom = confusionmat(train_classes, res_csom.classes);
 csom.pcmat
 

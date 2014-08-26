@@ -30,15 +30,19 @@ figure(1); clf; hold on;
 plot3(coors(:,1),coors(:,2), coors(:,3), 'r*');
 angles = [];
 
-h = waitbar(0,'Calculating angles...');
+hw = waitbar(0,'Calculating angles...');
 for i = 1:3:length(waveforms),
 %for i = 1:10,
                
         perc = i/size(coors, 1);
-        waitbar(perc,h,sprintf('Matching point cloud and waveforms: %.1f%% ',perc*100));
+        waitbar(perc,hw,sprintf('Calculating angles: %.1f%% ',perc*100));
     
         wform = waveforms{i};
-        sample = wform.sbl{2}.sample;
+        if length(wform.sbl) > 1,
+            sample = wform.sbl{2}.sample;
+        else
+            continue;
+        end;
         
         beam_vect = (wform.originptr + wform.dirptr);
         %beam_vect = wform.dirptr;
@@ -61,23 +65,24 @@ end;
 grid on;
 axis equal;
 
+% Compare LAS and angles computed from SDF
 figure(2); clf; hold on;
 unangles = unique(angles(:,1));
 sel_angle = unangles(1);
 rangs = find(angles(:,1)==sel_angle);
 plot(1:length(rangs), angles(rangs, 2), 'r-');
-h=plot(1:length(rangs), repmat(11.5, 1, length(rangs)), 'k--');
+h=plot(1:length(rangs), repmat(abs(sel_angle) + 0.5, 1, length(rangs)), 'k--');
 set(h, 'LineWidth', 2);
-h=plot(1:length(rangs), repmat(10.5, 1, length(rangs)), 'k--');
+h=plot(1:length(rangs), repmat(abs(sel_angle) - 0.5, 1, length(rangs)), 'k--');
 set(h, 'LineWidth', 2);
 title(sprintf('LAS scan angle: %i^o', sel_angle));
-ylim([10 13]);
+%ylim([10 13]);
 h = xlabel('Sample [#]'); 
 set(h, 'LineWidth', 12);
-h=ylabel('Calculated scan angle [^o]')
+h=ylabel('Calculated scan angle [^o]');
 set(h, 'LineWidth', 12);
 
-
+% Save results
 dataset.angles = angles;
 project.datasets{dataset_no} = dataset;
 save(project_file, 'project');

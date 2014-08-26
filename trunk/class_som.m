@@ -15,7 +15,8 @@ function res = class_som(obj, wfmx)
         ind = find(outputs(i,:)==1);
         group(ind) = i;
         
-        [~, ci] = max(obj.cmat(i,:));
+        [~, ci] = max(obj.pcmat(i,:));
+                
         classes(ind) = obj.uclasses(ci);
 
         ratios(ind,:) = repmat( obj.cmat(i,:) / sum(obj.cmat(i,:)), length(ind), 1);

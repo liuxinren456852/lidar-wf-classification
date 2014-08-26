@@ -5,7 +5,7 @@ dcoors = dcoors - repmat(mean(dcoors), size(dcoors, 1), 1);
 res_cmw = class_median_wf(cmw, dwfmx);
 res_cdg = class_discr(cdg,  dgparam);
 res_csom_grass = class_som(csom_grass, dwfmx);
-res_csom = class_som(csom_grass, dwfmx);
+res_csom = class_som(csom, dwfmx);
 
 res_cmw.ratios(res_cmw.ratios == 0) = 0.1;
 res_cdg.ratios(res_cdg.ratios == 0) = 0.1;
@@ -13,19 +13,24 @@ res_csom.ratios(res_csom.ratios == 0) = 0.1;
 %res_csom.ratios = res_csom.ratios + 0.5;
 
 plike = res_cmw.ratios .* res_cdg.ratios;
+%plike = res_cmw.ratios;
 %plike = res_csom.ratios;
 
 plike = plike ./ sum(sum(plike)); % Normalizing
 [val sol_class] = max(plike, [], 2);
 
-% Road 2 correction
-idx = find(sol_class == 2);
-res_road2_corr = class_som(csom_grass, dwfmx(idx, :));
-[~, ind] = max(res_road2_corr.ratios(:,2:3), [], 2);
-sol_class(idx) = ind + 1;
+% % Road 2 correction
+idx = find(or(sol_class == 2, sol_class == 3));
+%res_road2_corr = class_som(csom_grass, dwfmx(idx, :));
+res_road2_corr = class_som(csom, dwfmx(idx, :));
+[vals, ind_grass] = max(res_road2_corr.ratios(:,2:3), [], 2);
+ind_grass(ind_grass == 1) = 100; ind_grass(ind_grass == 2) = 110;
+ind_grass(ind_grass == 100) = 2; ind_grass(ind_grass == 110) = 3;
+sol_class(idx) = ind_grass ;
 
+% 
 % Building correction
-idx = find(sol_class == 1);
+idx = find(or(sol_class == 1, sol_class == 5));
 res_build_corr = class_som(csom, dwfmx(idx, :));
 [~, ind] = max(res_build_corr.ratios(:,[1 5]), [], 2);
 ind(ind == 1) = 1; ind(ind == 2) = 5;
@@ -75,6 +80,7 @@ ylabel('Y [m]', 'FontSize', 14);
 set(gca, 'FontSize', 14);
 title('Before filtering', 'FontSize', 14);
 axis equal;
+xlim([-60 60]); ylim([-60 60]);
 
 % Filtering
 sel = find(val > 0 );
@@ -105,6 +111,7 @@ ylabel('Y [m]', 'FontSize', 14);
 set(gca, 'FontSize', 14);
 title('After filtering', 'FontSize', 14);
 axis equal;
+xlim([-60 60]); ylim([-60 60]);
 
 
 cfmf = confusionmat(dclassesf, sol_class_f)

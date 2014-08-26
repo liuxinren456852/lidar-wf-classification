@@ -6,7 +6,7 @@
 % The Ohio State Univeristy
 
 %% Settings
-clear all; clc;
+clear all; clc; close all;
 
 settings;
 load(project_file); 
@@ -21,6 +21,8 @@ while ~corr,
     clc;
     fprintf(' Manage groups\n');
     fprintf(' ----------------------\n')
+    fprintf(' Project: %s\n', project_file);
+    fprintf(' ----------------------\n')
     
     g_nn = 0;
     if (isfield(project, 'groups'))
@@ -32,7 +34,7 @@ while ~corr,
                 end;
                 
                 % Check g_params field exist
-                if isfield(project.groups{i}, 'g_params'),
+                if isfield(project.groups{i}, 'is_calc'),
                     g_nn = g_nn+1;
                 end;
                 
@@ -47,28 +49,41 @@ while ~corr,
     end;
 
     % Menu
-	fprintf('\n');
+	fprintf('\nProject:\n');
     fprintf('    [0]  Exit without saving\n')
     fprintf('    [1]  Exit with saving\n')
-    fprintf('    [2]  Create new group\n')
-    fprintf('    [3]  Remove group\n')
-    fprintf('    [4]  Add dataset to the group\n')
-    fprintf('    [5]  Remove dataset from the group\n')
-    fprintf('    [6]  Show groups\n')
-    fprintf('    [7]  Classifying by Gaussian parameters\n')
-    fprintf('    [8]  Classifying by skewness and kurtosis\n')
-    fprintf('    [9]  Classifying using neural network\n')
+    fprintf('    [2]  Save\n')
+    fprintf('    [3]  Calculate parameters\n')
+    
+    fprintf('\nGroups:\n');
+    fprintf('    [4]  Create new group\n')
+    fprintf('    [5]  Remove group\n')
+    fprintf('    [6]  Add dataset to the group\n')
+    fprintf('    [7]  Remove dataset from the group\n')
+    fprintf('    [8]  Show classes\n')
+    
+    fprintf('\nClassifiers:\n');
     if g_nn ~= 0,
-        fprintf('    (10) Classifying by Gaussian parameters using neural network (run 7 first!)\n');
-        fprintf('    (11) Classfying by the distances from the median waveforms (run 7 first!)\n');
-        fprintf('    (12) Discriminant analysis\n (run 7 and 8 first!)');
+        fprintf('    Following options required to run 3 first!\n');
+        fprintf('    (9)  Classifying by Gaussian parameters\n')
+        fprintf('    (10) Classifying by skewness and kurtosis\n')
+        fprintf('    (11) Classifying using neural network\n')
+        fprintf('    (12) Classifying by Gaussian parameters using neural network\n');
+        fprintf('    (13) Classfying by the distances from the median waveforms\n');
+        fprintf('    (14) Discriminant analysis\n');
+        fprintf('    (15) Clustering with SOM\n')
+        fprintf('    (16) Combined clustering\n');
     else
-        fprintf('    [10] Classifying by Gaussian parameters using neural network\n');
-        fprintf('    [11] Classfying by the distances from the median waveforms\n');
-        fprintf('    [12] Discriminant analysis\n');
+        fprintf('    [9]  Classifying by Gaussian parameters\n')
+        fprintf('    [10] Classifying by skewness and kurtosis\n')
+        fprintf('    [11] Classifying using neural network\n')
+        fprintf('    [12] Classifying by Gaussian parameters using neural network\n');
+        fprintf('    [13] Classfying by the distances from the median waveforms\n');
+        fprintf('    [14] Discriminant analysis\n');
+        fprintf('    [15] Clustering with SOM\n')
+        fprintf('    [16] Combined clustering\n')
     end
-    fprintf('    [13] Clustering with SOM\n')
-    fprintf('    [14] Beyasian clustering\n')
+
 
     % Select an option
     result = input('\nSelect option: ');
@@ -77,16 +92,51 @@ while ~corr,
     end;
 
     % Execute commands
-    if and( (result) > 0,  (result) <= 15),
+    if and( (result) > 0,  (result) <= 16),
         switch result
             
-            % Exit without saving
+            % Exit with saving
             case 1,
                 save(project_file, 'project');
                 return;
                 
-            % Exit with saving
+            % Save
             case 2,
+                save(project_file, 'project');
+                continue;                
+
+            % Calculate parameters
+            case 3,
+                for k1 = 1 : length(project.groups)
+                    
+                    answ = 'y';
+                    if isfield(project.groups{k1}, 'is_gauss_fit'),
+                        answ = input( ...
+                            sprintf('The Gaussian parameters of the %s have been calcualted,\ndo you want to recalcualte them [y/n]? ', ...
+                                project.groups{k1}.name), 's');
+                    end;
+                    
+                    if strcmp(answ, 'y'),
+                        for k2 = 1:length(project.groups{k1}.datasets),
+                            dataset_i = project.groups{k1}.datasets(k2);
+                            calc_gauss;
+                        end;
+                        project.groups{k1}.is_gauss_fit = 1;
+                        save(project_file, 'project');
+                        disp('Data has been saved!')
+                    end;                   
+                    
+                end;
+                
+                groups = project.groups;
+                calc_group_param;
+                project.groups = groups;
+                save(project_file, 'project');
+                disp('Data has been saved!')
+                continue;  
+                
+            % Create new group
+            case 4,
                 result = input('What will be the name of the new group: ', 's');
                  if(isfield(project, 'groups'))
                     project.groups{length(project.groups)+1}.name = result;
@@ -97,12 +147,12 @@ while ~corr,
                  end;
                  
             % Create new group  
-            case 3,
+            case 5,
                 [group group_no] = select_group(project);
                 project.groups(group_no) = [];
 
             % Remove group
-            case 4,
+            case 6,
                 [group group_no] = select_group(project);
                 [dataset dataset_no]= select_dataset(project)
                 if isnumeric(dataset),
@@ -111,7 +161,8 @@ while ~corr,
                 project.groups{group_no}.datasets = [...
                     project.groups{group_no}.datasets, dataset_no];
                 
-            case 5,
+            % Remove dataset from the group
+            case 7,
                 [group group_no] = select_group(project);
                 for j = 1 : length(project.groups{group_no}.datasets),
                     fprintf('        [%i] %s\n', j, project.datasets{project.groups{group_no}.datasets(j)}.name);
@@ -122,16 +173,18 @@ while ~corr,
                 else
                     fprintf('\nWrong dataset no.\n');
                 end;
-                
-            case 6,
+              
+            % Show groups
+            case 8,
                 show_groups
-                
-            case 7,
+ 
+            % Gaussian parameters
+            case 9,
                 groups = project.groups;
                 analysis_gaussian;
                 project.groups = groups;
                 
-            case 8,
+            case 10,
                 groups = project.groups;
                 analysis_skewness;
                 project.groups = groups;
@@ -139,7 +192,7 @@ while ~corr,
                 input('Press any key...');
                 continue;
                 
-            case 9,
+            case 11,
                 result = input('Lower bound (0-0.5): ');
                 if and( (result) > 0,  (result) <= 0.5),
                     lb = result;
@@ -152,7 +205,7 @@ while ~corr,
                     continue;
                 end;
                 
-            case 10,
+            case 12,
                 if g_nn == 0,
                     result = input('Lower bound (0-0.5): ');
                     if and( (result) > 0,  (result) <= 0.5),
@@ -171,19 +224,19 @@ while ~corr,
                     continue;
                 end;
             
-            case 11,
+            case 13,
                 groups = project.groups;
                 analysis_median_waveform;
                 
-            case 12,
+            case 14,
                 groups = project.groups;
                 analysis_discriminant;
                                 
-            case 13,
+            case 15,
                 groups = project.groups;
                 analysis_som;
                 
-            case 14,
+            case 16,
                 groups = project.groups;
                 analysis_beyasian;
         

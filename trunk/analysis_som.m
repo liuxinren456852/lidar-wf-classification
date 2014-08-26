@@ -40,10 +40,8 @@ else
         wfmx = [];  
         
         for j = 1:length(groups{i}.datasets)
-            load( project.datasets{groups{i}.datasets(j)}.waveforms );
-            %wfmx = [wfmx; get_sample_to_mx( waveforms, 2 )];
 
-            add_wfmx = trans_waveform(get_sample_to_mx( waveforms, 2 ), -1);
+            add_wfmx = trans_waveform(groups{i}.wfmx{wave_id}, -1);
             wfmx = [wfmx; add_wfmx];
 
             load( project.datasets{groups{i}.datasets(j)}.coors );
@@ -249,6 +247,7 @@ else
 
 end;
 
+input('Press enter...');
 
 
 

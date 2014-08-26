@@ -11,13 +11,12 @@ sum_coors = [];
 
 for i = 1 : length(groups),
     
-    wfmx = [];    
     for j = 1:length(groups{i}.datasets)
-        load( project.datasets{groups{i}.datasets(j)}.waveforms );
-        wfmx = [wfmx; get_sample_to_mx( waveforms, 2 )];
         load( project.datasets{groups{i}.datasets(j)}.coors );
         sum_coors = [sum_coors; coors];
     end;
+
+    wfmx = groups{i}.wfmx{wave_id};
     sample = wfmx(:, 1:60);
     sum_samples = [sum_samples; repmat(i-1, size(sample, 1), 1), sample];
 end;

@@ -1,5 +1,5 @@
 %%
-% Display datasets
+% Display classes
 %
 % Written by Zoltan Koppanyi
 % Date: 07/24/2014
