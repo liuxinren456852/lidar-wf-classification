@@ -8,17 +8,35 @@
 
 %%
 
-addpath('sdf_reader')
+clear all; clc; close all;
 
-clear all; clc;
+% Load SDF reader library
+addpath('sdf_reader');
 
 %% Settigns
 settings
 load(project_file)
 
+% Load LAS file
 [las_file, las_folder, FilterIndex] = uigetfile({'*.las'}, 'Select the LAS file...', 'MultiSelect', 'off');
+if las_file == 0,
+    disp('No selected file! Return!')
+    return;
+end;
+
+% Load SDF file
 [sdf_file, sdf_folder, FilterIndex] = uigetfile({'*.sdf'}, 'Select the SDF file...', 'MultiSelect', 'off');
+if sdf_file == 0,
+    disp('No selected file! Return!')
+    return;
+end;
+
+% Set ouput file
 save_name = input('What will be the nam of the new dataset: ', 's');
+if isempty(save_name),
+    disp('No output file specified! Return!')
+    return;
+end;
 
 %% Load SDF file
 [names,notfound,warnings]=load_fwifc;
@@ -71,9 +89,6 @@ project.datasets{length(project.datasets)}.coors = [project.result_folder '\' sa
 project.datasets{length(project.datasets)}.waveforms = [project.result_folder '\' save_name '_waveforms.mat'];
 project.datasets{length(project.datasets)}.sdf_info = [project.result_folder '\' save_name '_sdf_info.mat'];
 save(project_file, 'project')
-
-%% Calculate gaussian parameters
-calc_gauss;
 
 %% Update project
 project.datasets{length(project.datasets)}.name = save_name;

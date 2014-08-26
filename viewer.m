@@ -100,23 +100,38 @@ while 1,
     end;
     
     % Gauss fitting results
-    figure(3); hold on;
-    clf; hold on;
-    
-    samples = rec.g_samples;
-    tvals = rec.g_ts;
-    gaussfn = rec.g_fn;
-    xsol = rec.g_params;
-    
-    plot(tvals ,samples, 'r*-');
-    tsol = min(tvals):0.1:max(tvals);
-    plot(tsol , gaussfn(tsol , xsol), 'b-');
-    fprintf('Gaussian parameters:\n');
-    fprintf('                  a: %.4f\n', xsol(1));
-    fprintf('                  b: %.4f\n', xsol(2));
-    fprintf('                  c: %.4f\n', xsol(3));
-    fprintf('                  d: %.4f\n', xsol(4));
-    fprintf('                  e: %.4f\n', xsol(5));
+    if isfield(rec, 'g_samples'),
+        figure(3); hold on;
+        clf; hold on;
+
+        % Sample
+        samples = rec.g_samples;
+        tvals = rec.g_ts;
+        gaussfn = rec.g_fn;
+        xsol = rec.g_params;
+        plot(tvals ,samples, 'r*-');
+        tsol = min(tvals):0.1:max(tvals);
+        plot(tsol , gaussfn(tsol , xsol), 'r-');
+
+        % Impulse response
+        impulse_response = rec.impulse_response;
+        samples_ir = rec.g_ir_samples;
+        tvals_ir = rec.g_ir_ts;
+        gaussfn_ir = rec.g_ir_fn;
+        xsol_ir = rec.g_ir_params;
+
+        plot(tvals ,impulse_response, 'g*-');
+        tsolir = min(tvals_ir):0.1:max(tvals_ir);
+        plot(tsolir , gaussfn_ir(tsolir , xsol_ir), 'g-');
+
+
+        fprintf('Gaussian parameters:\n');
+        fprintf('                  a: %.4f\n', xsol(1));
+        fprintf('                  b: %.4f\n', xsol(2));
+        fprintf('                  c: %.4f\n', xsol(3));
+        fprintf('                  d: %.4f\n', xsol(4));
+        fprintf('                  e: %.4f\n', xsol(5));
+    end;
     
     fprintf('\n\n');
     fprintf('Time difference [GPST] = %.6f\n', rec.time_ext - coors(selp, 5));

@@ -12,21 +12,12 @@ figure(6); clf; hold on;
 colors = 'rgbcyk';
 sumkurt = [];
 
-% Get waveforms
-for i = 1 : length(groups),
-    groups{i}.wfmx = [];
-    for j = 1:length(groups{i}.datasets)
-        load( project.datasets{groups{i}.datasets(j)}.waveforms );
-        groups{i}.wfmx = [groups{i}.wfmx; get_sample_to_mx( waveforms, 2 )];
-    end;
-end;
-
 s = 'Dataset #; Mean skewness; Median skewness; Mean kurtosis; Median kurtosis\n';
 for gi = 1 : length(groups)
     
-    % Calcualte kurtosis and skewness
-    skl = skewness(groups{gi}.wfmx(:, 1:40), 1, 2);
-    kurtl = kurtosis(groups{gi}.wfmx(:, 1:40), 1, 2);
+    % Get kurtosis and skewness
+    skl = groups{gi}.sk{wave_id};
+    kurtl = groups{gi}.skkurt{wave_id};
     
     % Calcualte mean
     mskl = mean(skl); sskl = std(skl);
@@ -37,8 +28,8 @@ for gi = 1 : length(groups)
     %kurtl = kurtl(and((mkurtl-skurtl)<kurtl, kurtl<(mkurtl+skurtl)));
     
     % Save to local variables
-    groups{gi}.sk = skl;
-    groups{gi}.skkurt = kurtl;
+    %groups{gi}.sk = skl;
+    %groups{gi}.skkurt = kurtl;
     
     sumkurt = [sumkurt; repmat(gi, length(kurtl), 1), kurtl];
     
